@@ -1,0 +1,9 @@
+### VS Code ###
+.vscode/
+
+exported_models/**/**
+pre-trained-models/**/**
+models/**/**
+images/**/**
+dataset_to_validate/**/**
+
