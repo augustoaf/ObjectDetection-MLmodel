@@ -1,9 +1,19 @@
-plot_object_detection_checkpoint-byAugusto and plot_object_detection_saved_model-byAugusto Apps  
+------------------------------------------------------------------------------------------------------  
+App: request_to_tensorflow_serving.py  
+  
+This app consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8)  
+
+------------------------------------------------------------------------------------------------------  
+  
+Apps: plot_object_detection_checkpoint-byAugusto and plot_object_detection_saved_model-byAugusto  
   
 Apps using TensorFlow and Object Detection API libs.  
 Both apps uses a local ML model to detect objects based on an array of images and save the labeled images and also print out on the console the objects detected.  
   
-Note: The ML model used are provided by TensorFlow Model Garden and they were trained using COCO dataset  
+Notes:  
+-The ML model used are provided by TensorFlow Model Garden and they were trained using COCO dataset.  
+-The apps were downloaded from TensorFlow website and customized by myself to work with local ML model.  
+-There are two versions of the App, one to work with "saved model" and another to work with "model checkpoint".  
   
 Requirements:  
 ML model based on COCO dataset and Labels Mapping  
@@ -22,13 +32,12 @@ workspace/training_demo/models: This folder will contain a sub-folder for each o
 workspace/training_demo/pre-trained-models: This folder will contain the downloaded pre-trained models, which shall be used as a starting checkpoint for our training jobs.  
 workspace/training_demo/scripts: scripts to automate tasks  
   
+------------------------------------------------------------------------------------------------------  
 
-
------------------------------------------------------------------------  
-Find below example of object detection with accuracy above 0.4  
------------------------------------------------------------------------  
-  
-table_detection.png (labeled image) / table.jpg (original image)  
+======================================================================================================
+Find below an example of object detection with accuracy above 0.4   
+ML model used: ssd_resnet50_v1_fpn_640x640_coco17_tpu-8  
+Images: table_detection.png (labeled image) / table.jpg (original image)  
   
 array of labels identified:  
   
