@@ -121,6 +121,7 @@ for image_path in IMAGE_PATHS:
     input_tensor = input_tensor[tf.newaxis, ...]
 
     # input_tensor = np.expand_dims(image_np, 0)
+    #perform the detections over the ML model
     detections = detect_fn(input_tensor)
 
     # All outputs are batches tensors.
@@ -153,20 +154,15 @@ for image_path in IMAGE_PATHS:
 	#save labeled image
     image_path_str = str(image_path)
     labeled_image_filename = image_path_str[0:len(image_path_str)-4] + '_detection' + image_path_str[len(image_path_str)-4:4]
-    plt.figure() # Create a new figure, or activate an existing figure. you can provide parameters to define the width/height size and dpi
-    plt.imshow(image_np_with_detections) # Display data as an image, i.e., on a 2D regular raster
+    plt.figure() # Create a new figure, or activate an existing figure. 
+    plt.imshow(image_np_with_detections) # Display data as an image
     plt.savefig(
           labeled_image_filename, 
-		  dpi=None, 
 		  facecolor='w', 
 		  edgecolor='w', 
 		  orientation='portrait', 
-		  papertype=None, 
-		  format=None, 
 		  transparent=False, 
-		  bbox_inches=None, 
-		  pad_inches=0.1, 
-		  frameon=True)
+		  pad_inches=0.1)
 	
 	#print labeled image filenames and the objects detected
     print('labeled image', labeled_image_filename, end='\n')

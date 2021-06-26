@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------------------------------  
 App: request_to_tensorflow_serving.py  
   
-This app consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8)  
+This app consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8) and save a labeled image  
 
 ------------------------------------------------------------------------------------------------------  
   
