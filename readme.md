@@ -1,18 +1,36 @@
 ------------------------------------------------------------------------------------------------------  
-App: request_to_tensorflow_serving.py  
+App: objectDetection_using_tfserving_vMQTTandDocker  
   
-This app consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object  Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8) and save a labeled image  
-Trigger by a hardcoded image filename set in a global variable named IMAGE_FILENAME_WITH_PATH in the App  
+This app runs under a docker container and consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8) and save a labeled image  
+Trigger: by MQTT topic where it receives an image filename (without path) to start the Object Detection process  
+  
+Assumptions:  
+  -ML model scoring method available through REST API: http://localhost:8501/v1/models/ssd_resnet50:predict  
+  -MQTT Broker running in order to the App read topic messages from house/pictures - text must be a picture filename  
+  -Pictures are mapped from a host folder to a docker container folder where it will load the picture and also save a new labeled picture  
   
 ------------------------------------------------------------------------------------------------------  
-  
-App: request_to_tensorflow_serving_triggerByMQTT.py  
+App: objectDetection_using_tfserving_vMQTT.py  
   
 This app consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object   Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8) and save a labeled image  
-Trigger by MQTT topic where it receives an image filename to start the Object Detection process  
+Trigger: by MQTT topic where it receives an image filename (with path) to start the Object Detection process  
+  
+Assumptions:  
+  -ML model scoring method available through REST API: http://localhost:8501/v1/models/ssd_resnet50:predict  
+  -MQTT Broker running in order to the App read topic messages from house/pictures - text must be a picture path+filename  
+  -Picture and Object Label Mapping available in the host  
   
 ------------------------------------------------------------------------------------------------------  
+App: objectDetection_using_tfserving.py  
   
+This app consume an API exposed by TensorFlow Serving (running through a Docker container) to scoring an image through an Object  Detector ML model (ssd_resnet50_v1_fpn_640x640_coco17_tpu-8) and save a labeled image  
+Trigger: by a hardcoded image filename set in the App code  
+  
+Assumptions:  
+  -ML model scoring method available through REST API: http://localhost:8501/v1/models/ssd_resnet50:predict  
+  -Picture and Object Label Mapping available in the host  
+  
+------------------------------------------------------------------------------------------------------  
 Apps: plot_object_detection_checkpoint-byAugusto and plot_object_detection_saved_model-byAugusto  
   
 Apps using TensorFlow and Object Detection API libs.  
@@ -39,9 +57,8 @@ workspace/training_demo/images/test: This folder contains a copy of all images, 
 workspace/training_demo/models: This folder will contain a sub-folder for each of training job. Each subfolder will contain the training pipeline configuration file *.config, as well as all files generated during the training and evaluation of our model.  
 workspace/training_demo/pre-trained-models: This folder will contain the downloaded pre-trained models, which shall be used as a starting checkpoint for our training jobs.  
 workspace/training_demo/scripts: scripts to automate tasks  
+-----------------------------------------------------------------------------------------------------  
   
-------------------------------------------------------------------------------------------------------  
-
 ======================================================================================================
 Find below an example of object detection with accuracy above 0.4   
 ML model used: ssd_resnet50_v1_fpn_640x640_coco17_tpu-8  

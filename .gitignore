@@ -6,4 +6,4 @@ pre-trained-models/**/**
 models/**/**
 images/**/**
 dataset_to_validate/**/**
-
+tensorflow/**/**

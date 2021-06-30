@@ -1,0 +1,84 @@
+# Build an image with TensorFlow + Object Detector API and an App (objectDetection_using_tfserving_vMQTTandDocker) to use the TF Serving API.
+#   The docker based image already have the TensorFlow, this docker file has instructions to install the Object Detector API 
+#   and its dependencies, also it is embedding an App to use the Object Detector API to "scoring" an image through a ML model.
+#   Assumptions: 
+#   - Docker build must run in a context which contains the App, Object Label Mappings and the TensorFlow Model Garden
+#   - Docker run must bind a host folder where are located the pictures
+#
+# Note: This Dockerfile is based on a version inside the TensorFlow Model Garden (models\research\object_detection\dockerfiles\tf2\Dockerfile)
+#
+# Reference: 
+#   - TensorFlow Model Garden git repo - https://github.com/tensorflow/models.git
+#   - TensorFlow docker images https://hub.docker.com/r/tensorflow/tensorflow
+#
+# Examples to run docker build and docker run:
+#   docker build -f Dockerfile -t augustoaf/objectdetectionapp . 
+#   docker run -t -v "C:\\workspace\\TensorFlow\\workspace\\training_demo\\dataset_to_validate\\tmp":"/app/pictures/" augustoaf/objectdetectionapp
+#
+# by Augusto
+
+FROM tensorflow/tensorflow
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+##################### installing TensorFlow Object Detector API #######################
+
+# Install apt dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    gpg-agent \
+    python3-cairocffi \
+    protobuf-compiler \
+    python3-pil \
+    python3-lxml \
+    python3-tk \
+    wget
+
+# Install gcloud and gsutil commands
+# https://cloud.google.com/sdk/docs/quickstart-debian-ubuntu
+RUN apt install -y lsb-release
+RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    apt-get update -y && apt-get install google-cloud-sdk -y
+
+# Copy version of the model garden into the image
+# assumption: folder tensorflow/models was previously copied into the context path (content available on TensorFlow Model Garden git repo)
+COPY tensorflow/models /tensorflow/models
+
+# Compile protobuf configs
+# attention: proto-path must point until to the research folder once the .proto files references from there to import other files (e.g., file anchor_generator.proto -> import "object_detection/protos/flexible_grid_anchor_generator.proto";)
+RUN protoc --proto_path /tensorflow/models/research/ /tensorflow/models/research/object_detection/protos/*.proto --python_out=.
+
+#upgrade pip
+RUN python -m pip install -U pip
+
+#install Object Detector API
+WORKDIR /tensorflow/models/research/
+RUN cp object_detection/packages/tf2/setup.py ./
+ENV PATH="/tensorflow/.local/bin:${PATH}"
+RUN python -m pip install .
+
+ENV TF_CPP_MIN_LOG_LEVEL 3
+
+########################### adding the app ##################################
+
+WORKDIR /app
+
+#installing APP dependencies
+RUN pip install paho-mqtt 
+RUN pip install Pillow 
+RUN pip install requests
+
+#clean up pip cache 
+RUN pip cache purge
+
+#preparing the app
+#this folder (/app/pictures) will be used to bind a host folder where are located the images
+RUN mkdir pictures
+#copy the app
+COPY objectDetection_using_tfserving_vMQTTandDocker.py .
+#copy yhe object labels mapping
+COPY //annotations//COCO_labels//mscoco_label_map.pbtxt .
+
+CMD [ "python", "-u", "./objectDetection_using_tfserving_vMQTTandDocker.py" ]

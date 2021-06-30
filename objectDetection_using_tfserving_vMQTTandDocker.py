@@ -1,6 +1,3 @@
-#This app consume an API (REST) exposed by TensorFlow Serving to scoring an image through an Object Detector ML model and save a new labeled image. 
-#Trigger by MQTT topic where it receives an image filename to start the Object Detection process
-#
 #by Augusto Alves Furtado
 
 import json
@@ -15,14 +12,15 @@ import matplotlib.pyplot as plt
 import time
 import paho.mqtt.client as mqtt
 
-URL_API = 'http://localhost:8501/v1/models/ssd_resnet50:predict'
-LABEL_MAP_WITH_PATH = 'C:\\workspace\\TensorFlow\\workspace\\training_demo\\annotations\\COCO_labels\\mscoco_label_map.pbtxt'
+URL_API = 'http://192.168.86.42:8501/v1/models/ssd_resnet50:predict'
+LABEL_MAP_WITH_PATH = '/app/mscoco_label_map.pbtxt'
 MINIMUM_SCORE_TO_PLOT = .4
 LABEL_MAP = None
 BROKER_HOST = "192.168.86.42"
 BROKER_PORT = 1883
-MQTT_TOPIC = "house/detect-objects"
+MQTT_TOPIC = "house/pictures"
 IMAGE_REQUESTS_QUEUE = []
+PICTURES_PATH = '/app/pictures/'
 
 def add_image_request_on_queue(message_converted):
     global IMAGE_REQUESTS_QUEUE
@@ -76,11 +74,9 @@ def get_label_map():
         print('\nlabel map instantiated\n')
     return LABEL_MAP
 
-def get_labeled_image_filename(original_image_filename_with_path):
-    image_filename = os.path.basename(original_image_filename_with_path)
-    image_path = original_image_filename_with_path[0:len(original_image_filename_with_path)-len(image_filename)]
-    new_image_filename = image_filename[0:len(image_filename)-4] + '_detection' + image_filename[len(image_filename)-4:4] 
-    return image_path + new_image_filename
+def get_labeled_image_filename(original_image_filename):
+    new_image_filename = original_image_filename[0:len(original_image_filename)-4] + '_detection' + original_image_filename[len(original_image_filename)-4:4] 
+    return new_image_filename
 
 def plot_detections_and_save_new_image(image_detections, label_map, original_image_numpy_array, path_filename_to_save, score_threshold):
     
@@ -126,16 +122,16 @@ def print_detections(image_detections, label_map, score_threshold):
             print('label: ', label_map.get(image_detections['detection_classes'][index]), ' score: ', image_detections['detection_scores'][index], end='\n')
         index = index + 1
 
-def detect_objects(image_filename_with_path):
+def detect_objects(image_filename):
     #ML model label mappings
     label_map = get_label_map()
 
     try:
         #instantiate an image object
-        image = Image.open(image_filename_with_path)
+        image = Image.open(image_filename)
     except Exception as e:
-        raise FileNotFoundError('error to open the image file: ' + image_filename_with_path + '\n')
-    print('Object Detection started for : ', image_filename_with_path, end ='\n')
+        raise FileNotFoundError('error to open the image file: ' + image_filename + '\n')
+    print('Object Detection started for : ', image_filename, end ='\n')
 
     #load image into a numpy array
     image_np = np.array(image)
@@ -160,7 +156,7 @@ def detect_objects(image_filename_with_path):
     alldimensions_predictions = json.loads(json_response.text)['predictions']
     predictions = alldimensions_predictions[0]    
 
-    labeled_image_filename_to_save = get_labeled_image_filename(image_filename_with_path)
+    labeled_image_filename_to_save = get_labeled_image_filename(image_filename)
     print('API response status: ', json_response, '\n')
     plot_detections_and_save_new_image(predictions, label_map, image_np, labeled_image_filename_to_save, MINIMUM_SCORE_TO_PLOT)
     print('\n labeled image saved: ', labeled_image_filename_to_save)
@@ -180,7 +176,7 @@ def main():
                 #get the next element in the queue - FIFO
                 image_request = IMAGE_REQUESTS_QUEUE.pop(0)
                 try:
-                    detect_objects(image_request)
+                    detect_objects(PICTURES_PATH + image_request)
                 except FileNotFoundError as e:
                     print(e)
     except KeyboardInterrupt:
