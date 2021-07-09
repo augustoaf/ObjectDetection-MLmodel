@@ -58,8 +58,36 @@ workspace/training_demo/models: This folder will contain a sub-folder for each o
 workspace/training_demo/pre-trained-models: This folder will contain the downloaded pre-trained models, which shall be used as a starting checkpoint for our training jobs.  
 workspace/training_demo/scripts: scripts to automate tasks  
 -----------------------------------------------------------------------------------------------------  
-  
+
+
 ======================================================================================================
+
+Create Docker TensorFlow Serving with your ML model embedded
+
+Pull a TensorFlow Serving Docker image:
+docker pull tensorflow/serving
+
+Run TensorFlow Serving Docker Container as a daemon (detached of your current shell prompt):
+docker run -d --name <daemon name> tensorflow/serving
+Note: Give a name to your daemon.
+E.g.: docker run -d --name serving_base tensorflow/serving
+
+Copy saved ML model to TensorFlow Serving Docker Container model folder
+docker cp models/<my model> <daemon name>:/models/<my model>
+E.g.: docker cp ssd_resnet50/ serving_base:/models/
+Note: The folder structure expected by the TensorFlow serving is /models/<your base model folder>/<version number>/, so the content copied (ssd_resnet50 folder) into the models folder has this structure: /ssd_resnet50/1/
+
+Save the container based on the daemon container
+docker commit --change "ENV MODEL_NAME <model name>" <daemon name> <my container>
+Note: Provide a model name, daemon name and a Docker container name to be saved
+E.g.: docker commit --change "ENV MODEL_NAME ssd_resnet50" serving_base tensorflow/myserving
+
+Now you can run your new Docker container with a ML model already embedded 
+docker run -t --rm -p 8501:8501 <docker container name> &
+E.g.: docker run -t --rm -p 8501:8501 tensorflow/myserving &
+
+======================================================================================================
+
 Find below an example of object detection with accuracy above 0.4   
 ML model used: ssd_resnet50_v1_fpn_640x640_coco17_tpu-8  
 Images: table_detection.png (labeled image) / table.jpg (original image)  
